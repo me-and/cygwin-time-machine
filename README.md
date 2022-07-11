@@ -1,1 +1,3 @@
 - http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2022/07/09/111926 failed
+- http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2020/11/11/064744 passed
+- http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2022/01/15/092911 testing
