@@ -16,7 +16,7 @@ jobs:
         uses: cygwin/cygwin-install-action@v2
         with:
           packages: git gcc-core gettext gettext-devel gnupg gnupg2 libcurl-devel libexpat-devel libiconv libiconv-devel libpcre2-devel libssl-devel make perl-Authen-SASL perl-DBD-SQLite perl-IO-Socket-SSL perl-IO-Tty perl-MailTools perl-Net-SMTP-SSL perl-TermReadKey perl-Test-Harness perl-XML-SAX perl-YAML pkg-config subversion-perl time zlib-devel
-          site: http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/29/135802
+          site: http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/13/073443
           check-sig: false
       - name: Manually configure safe.directory
         run: git config --global --add safe.directory '*'
