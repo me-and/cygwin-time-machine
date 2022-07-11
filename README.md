@@ -2,7 +2,8 @@
 - http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2022/01/15/092911 failed
 - http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/11/11/145307 failed
 - http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/29/135802 failed
-- http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/13/073443
+- http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/24/145032
+- http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/13/073443 passed
 - http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/07/075106 passed
 - http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/09/02/074028 passed
 - http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/05/22/024517 passed
