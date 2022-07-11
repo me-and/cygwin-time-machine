@@ -1,0 +1,32 @@
+name: Test
+
+on: push
+
+jobs:
+  test:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash --noprofile --norc -e -o pipefail -o igncr {0}
+    env:
+      PATH: C:\cygwin\bin
+
+    steps:
+      - name: Install Cygwin packages
+        uses: cygwin/cygwin-install-action@v2
+        with:
+          packages: git gcc-core gettext gettext-devel gnupg gnupg2 libcurl-devel libexpat-devel libiconv libiconv-devel libpcre2-devel libssl-devel perl-Authen-SASL perl-DBD-SQLite perl-IO-Socket-SSL perl-IO-Tty perl-MailTools perl-Net-SMTP-SSL perl-TermReadKey perl-Test-Harness perl-XML-SAX perl-YAML pkg-config subversion-perl time zlib-devel
+          site: http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2022/07/09/111926
+          check-sig: false
+      - name: Manually configure safe.directory
+        run: git config --global --add safe.directory '*'
+      - name: Checkout Git repository
+        uses: actions/checkout@v3
+        with:
+          set-safe-directory: false
+          repository: git/git
+          ref: main
+      - name: Build Cygwin Git
+        run: make -j3
+      - name: Test t0301
+        run: cd t && ./t0301-*.sh
