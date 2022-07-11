@@ -15,21 +15,26 @@ jobs:
       - name: Install Cygwin packages
         uses: cygwin/cygwin-install-action@v2
         with:
-          packages: curl git gcc-core gettext gettext-devel gnupg gnupg2 libcurl-devel libexpat-devel libiconv libiconv-devel libpcre2-devel libssl-devel make perl-Authen-SASL perl-DBD-SQLite perl-IO-Socket-SSL perl-IO-Tty perl-MailTools perl-Net-SMTP-SSL perl-TermReadKey perl-Test-Harness perl-XML-SAX perl-YAML pkg-config subversion-perl time xz zlib-devel
+          packages: curl findutils git gcc-core gettext gettext-devel gnupg gnupg2 libcurl-devel libexpat-devel libiconv libiconv-devel libpcre2-devel libssl-devel make perl-Authen-SASL perl-DBD-SQLite perl-IO-Socket-SSL perl-IO-Tty perl-MailTools perl-Net-SMTP-SSL perl-TermReadKey perl-Test-Harness perl-XML-SAX perl-YAML pkg-config subversion-perl time xz zlib-devel
           site: http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/27/155642
           check-sig: false
       - name: Download and unpack a Cygwin developer snapshot
         run: |
           curl -o cygwin-snapshot.tar.xz https://cygwin.com/snapshots/x86_64/cygwin-20210301.tar.xz
           mkdir cygwin-snapshot
-          tar -C cygwin-snapshot -xJf cygwin-snapshot.tar.xz
-      - name: Install the Cygwin developer snapshot
-        run: Copy-Item -Path "cygwin-snapshot\*" -Destination "C:\cygwin" -Recurse -Force
-        shell: pwsh  # Can't use Cygwin Bash for this, as we're changing the Cygwin DLL.
+          tar -C cygwin-snapshot -xaf cygwin-snapshot.tar.xz
+      - name: Separate out cygwin1.dll and install everything else
+        run: |
+          mv cygwin-snapshot/usr/bin/cygwin1.dll cygwin-snapshot/
+          cd cygwin-snapshot
+          find usr etc -type f -exec bash -c 'for f; do mkdir -p /"$(dirname "$f")" && cp "$f" /"$f"; done' - {} +
+      - name: Install cygwin1.dll
+        shell: pwsh  # Can't use Cygwin Bash as that would involve using the cygwin1.dll that's being overwritten
+        run: Move-Item -Force cygwin-snapshot\cygwin1.dll C:\cygwin\bin\cygwin1.dll
       - name: Confirm the snapshot is correctly installed
         run: |
           sha1sum /usr/bin/cygwin1.dll <(tar -xaf cygwin-snapshot.tar.xz -O -T <(echo usr/bin/cygwin1.dll))
-          tar -daf cygwin-snapshot.tar.xz -C / | grep -Ev ': (Mod time|[UG]id) differs$'
+          tar -daf cygwin-snapshot.tar.xz -C / | grep -Ev ': (Mod time|[UG]id) differs$' || :
       - name: Manually configure safe.directory
         run: git config --global --add safe.directory '*'
       - name: Checkout Git repository
