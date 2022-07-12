@@ -27,7 +27,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build Cygwin
+        id: build
         run: cygport cygwin.cygport download prep compile test install
+
+      - name: Rebuild Cygwin  # Second run hopefully makes it easier to find the errors
+        if: ${{ failure() && steps.build.conclusion == 'failure' }}
+        run: cygport cygwin.cygport compile
 
       - name: Separate out cygwin1.dll and install everything else
         run: |
