@@ -12,7 +12,7 @@ inherit toolchain
 
 PKG_NAMES="cygwin cygwin-devel cygwin-doc"
 
-PATCH_URI='register.patch static-init.patch'
+PATCH_URI='register.patch static-init.patch overflow.patch'
 
 # cygwin base package
 

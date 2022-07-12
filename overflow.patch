@@ -1,0 +1,24 @@
+commit 3ca80b360c2b294ad781c9c5f76d3b172a61c6dc
+Author: Corinna Vinschen <corinna@vinschen.de>
+Date:   Thu Aug 26 22:15:49 2021 +0200
+
+    Cygwin: dumper: fix up GCC pragma for g++ 11.2
+    
+    The GCC diagnostic ignored "-Wstringop-overflow" pragma doesn't work
+    as expected anymore.  Use the still working expression.
+    
+    Signed-off-by: Corinna Vinschen <corinna@vinschen.de>
+
+diff --git a/winsup/utils/dumper.cc b/winsup/utils/dumper.cc
+index bc6c68a53..12124e26a 100644
+--- a/winsup/utils/dumper.cc
++++ b/winsup/utils/dumper.cc
+@@ -557,7 +557,7 @@ dumper::dump_module (asection * to, process_module * module)
+   bfd_putl32 (note_length, header.elf_note_header.descsz);
+   bfd_putl32 (NT_WIN32PSTATUS, header.elf_note_header.type);
+ #pragma GCC diagnostic push
+-#pragma GCC diagnostic ignored "-Wstringop-overflow"
++#pragma GCC diagnostic warning "-Wstringop-overflow=1"
+ #pragma GCC diagnostic ignored "-Warray-bounds"
+   strncpy (header.elf_note_header.name, "win32module", NOTE_NAME_SIZE);
+ #pragma GCC diagnostic pop
