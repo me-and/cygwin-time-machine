@@ -15,35 +15,56 @@ jobs:
       - name: Install Cygwin packages
         uses: cygwin/cygwin-install-action@v2
         with:
-          packages: curl findutils git gcc-core gettext gettext-devel gnupg gnupg2 libcurl-devel libexpat-devel libiconv libiconv-devel libpcre2-devel libssl-devel make perl-Authen-SASL perl-DBD-SQLite perl-IO-Socket-SSL perl-IO-Tty perl-MailTools perl-Net-SMTP-SSL perl-TermReadKey perl-Test-Harness perl-XML-SAX perl-YAML pkg-config subversion-perl time xz zlib-devel
+          packages: autoconf automake cocom curl diffutils findutils git gcc-core gcc-g++ gettext gettext-devel gnupg gnupg2 libcurl-devel libexpat-devel libiconv libiconv-devel libpcre2-devel libssl-devel make mingw64-x86_64-gcc-g++ mingw64-x86_64-zlib perl perl-Authen-SASL perl-DBD-SQLite perl-IO-Socket-SSL perl-IO-Tty perl-MailTools perl-Net-SMTP-SSL perl-TermReadKey perl-Test-Harness perl-XML-SAX perl-YAML pkg-config subversion-perl time xz zlib-devel
           site: http://ctm.crouchingtigerhiddenfruitbat.org/pub/cygwin/circa/64bit/2021/10/28/174906
           check-sig: false
-      - name: Download and unpack a Cygwin developer snapshot
+
+      - name: Manually configure safe.directory
+        run: git config --global --add safe.directory '*'
+
+      - name: Get the relevant commit from the Git source repo
         run: |
-          curl -o cygwin-snapshot.tar.xz https://cygwin.com/snapshots/x86_64/cygwin-20210301.tar.xz
-          mkdir cygwin-snapshot
-          tar -C cygwin-snapshot -xaf cygwin-snapshot.tar.xz
+          git clone --no-checkout git://sourceware.org/git/newlib-cygwin.git
+          cd newlib-cygwin
+          git switch --detach ef05e8bda
+
+      - name: Build Cygwin
+        run: |
+          mkdir -p newlib-cygwin/build
+          mkdir -p install-newlib-cygwin
+          install_dir="$(pwd)/install-newlib-cygwin"
+          cd newlib-cygwin/winsup
+          ./autogen.sh
+          cd ../build
+          ../configure --prefix="$install_dir"
+          make -j3
+          make install
+
       - name: Separate out cygwin1.dll and install everything else
         run: |
-          mv cygwin-snapshot/usr/bin/cygwin1.dll cygwin-snapshot/
-          cd cygwin-snapshot
+          mv install-newlib-cygwin/usr/bin/cygwin1.dll install-newlib-cygwin/
+          cd install-newlib-cygwin
           find usr etc -type f -exec bash -c 'for f; do mkdir -p /"$(dirname "$f")" && cp "$f" /"$f"; done' - {} +
       - name: Install cygwin1.dll
         shell: pwsh  # Can't use Cygwin Bash as that would involve using the cygwin1.dll that's being overwritten
-        run: Move-Item -Force cygwin-snapshot\cygwin1.dll C:\cygwin\bin\cygwin1.dll
-      - name: Confirm the snapshot is correctly installed
+        run: Copy-Item -Force install-newlib-cygwin\cygwin1.dll C:\cygwin\bin\cygwin1.dll
+
+      - name: Confirm the build is correctly installed
+        shell: bash --noprofile --norc -x -e -o pipefail -o igncr {0}
         run: |
-          sha1sum /usr/bin/cygwin1.dll <(tar -xaf cygwin-snapshot.tar.xz -O -T <(echo usr/bin/cygwin1.dll))
-          tar -daf cygwin-snapshot.tar.xz -C / | grep -Ev ': (Mod time|[UG]id) differs$' || :
-      - name: Manually configure safe.directory
-        run: git config --global --add safe.directory '*'
+          sha1sum install-newlib-cygwin/cygwin1.dll "$(which cygwin1.dll)"
+          diff <(cd install-newlib-cygwin && find . -mindepth 2 -type f -exec bash -c 'for f; do sha1sum "$f"; done' - {} +) <(cd install-newlib-cygwin && find . -mindepth 2 -type f -exec bash -c 'cd / && for f; do sha1sum "$f"; done' - {} +)
+
       - name: Checkout Git repository
         uses: actions/checkout@v3
         with:
           set-safe-directory: false
           repository: git/git
           ref: main
+          path: git
+
       - name: Build Cygwin Git
-        run: make -j3
+        run: cd git && make -j3
+
       - name: Test t0301
-        run: cd t && ./t0301-*.sh
+        run: cd git/t && ./t0301-*.sh
