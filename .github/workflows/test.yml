@@ -20,7 +20,7 @@ jobs:
           check-sig: false
       - name: Download and unpack a Cygwin developer snapshot
         run: |
-          curl -o cygwin-snapshot.tar.xz https://cygwin.com/snapshots/x86_64/cygwin-20210301.tar.xz
+          curl -o cygwin-snapshot.tar.xz https://cygwin.com/snapshots/x86_64/cygwin-20210913.tar.xz
           mkdir cygwin-snapshot
           tar -C cygwin-snapshot -xaf cygwin-snapshot.tar.xz
       - name: Separate out cygwin1.dll and install everything else

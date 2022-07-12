@@ -1,6 +1,7 @@
 ## Cygwin developer snapshot bisecting
 
-- https://cygwin.com/snapshots/x86_64/cygwin-20210301.tar.xz
+- https://cygwin.com/snapshots/x86_64/cygwin-20210913.tar.xz
+- https://cygwin.com/snapshots/x86_64/cygwin-20210301.tar.xz passed
 
 ## Cygwin time machine bisecting
 
