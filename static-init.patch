@@ -1,0 +1,111 @@
+commit bdb7991db38b7bc802f4ef498a16ee850a837f44
+Author: Corinna Vinschen <corinna@vinschen.de>
+Date:   Thu Aug 26 22:19:20 2021 +0200
+
+    Cygwin: workaround a g++ 11.2 initialization bug
+    
+    trying to use aggregate initialization syntax on a member of a
+    nameless union member failes in g++ 11.2.
+    
+    Workaround this by using explicit initialization.
+    
+    Signed-off-by: Corinna Vinschen <corinna@vinschen.de>
+
+diff --git a/winsup/cygwin/miscfuncs.cc b/winsup/cygwin/miscfuncs.cc
+index cba2140b6..f4c3a1c48 100644
+--- a/winsup/cygwin/miscfuncs.cc
++++ b/winsup/cygwin/miscfuncs.cc
+@@ -511,35 +511,37 @@ class thread_allocator
+   PVOID (thread_allocator::*alloc_func) (SIZE_T);
+   PVOID _alloc (SIZE_T size)
+   {
+-    MEM_ADDRESS_REQUIREMENTS thread_req = {
++    static const MEM_ADDRESS_REQUIREMENTS thread_req = {
+       (PVOID) THREAD_STORAGE_LOW,
+       (PVOID) (THREAD_STORAGE_HIGH - 1),
+       THREAD_STACK_SLOT
+     };
+-    MEM_EXTENDED_PARAMETER thread_ext = {
+-      .Type = MemExtendedParameterAddressRequirements,
+-      .Pointer = (PVOID) &thread_req
+-    };
++    /* g++ 11.2 workaround: don't use initializer */
++    MEM_EXTENDED_PARAMETER thread_ext;
++    thread_ext.Type = MemExtendedParameterAddressRequirements;
++    thread_ext.Pointer = (PVOID) &thread_req;
++
+     SIZE_T real_size = roundup2 (size, THREAD_STACK_SLOT);
+     PVOID real_stackaddr = NULL;
+ 
+     if (real_size <= THREAD_STACK_MAX)
+       real_stackaddr = VirtualAlloc2 (GetCurrentProcess(), NULL, real_size,
+ 				      MEM_RESERVE | MEM_TOP_DOWN,
+ 				      PAGE_READWRITE, &thread_ext, 1);
+     /* If the thread area allocation failed, or if the application requests a
+        monster stack, fulfill request from mmap area. */
+     if (!real_stackaddr)
+       {
+-	MEM_ADDRESS_REQUIREMENTS mmap_req = {
++	static const MEM_ADDRESS_REQUIREMENTS mmap_req = {
+ 	  (PVOID) MMAP_STORAGE_LOW,
+ 	  (PVOID) (MMAP_STORAGE_HIGH - 1),
+ 	  THREAD_STACK_SLOT
+ 	};
+-	MEM_EXTENDED_PARAMETER mmap_ext = {
+-	  .Type = MemExtendedParameterAddressRequirements,
+-	  .Pointer = (PVOID) &mmap_req
+-	};
++	/* g++ 11.2 workaround: don't use initializer */
++	MEM_EXTENDED_PARAMETER mmap_ext;
++	mmap_ext.Type = MemExtendedParameterAddressRequirements;
++	mmap_ext.Pointer = (PVOID) &mmap_req;
++
+ 	real_stackaddr = VirtualAlloc2 (GetCurrentProcess(), NULL, real_size,
+ 					MEM_RESERVE | MEM_TOP_DOWN,
+ 					PAGE_READWRITE, &mmap_ext, 1);
+diff --git a/winsup/cygwin/mmap.cc b/winsup/cygwin/mmap.cc
+index 6b2e1c655..69c8c8990 100644
+--- a/winsup/cygwin/mmap.cc
++++ b/winsup/cygwin/mmap.cc
+@@ -201,15 +201,15 @@ MapView (HANDLE h, void *addr, size_t len, DWORD openflags,
+      a function under loader lock (STATUS_DLL_INIT_FAILED). */
+   if (!from_fixup_after_fork && wincap.has_extended_mem_api ())
+     {
+-      MEM_ADDRESS_REQUIREMENTS mmap_req = {
++      static const MEM_ADDRESS_REQUIREMENTS mmap_req = {
+ 	(PVOID) MMAP_STORAGE_LOW,
+ 	(PVOID) (MMAP_STORAGE_HIGH - 1),
+ 	0
+       };
+-      MEM_EXTENDED_PARAMETER mmap_ext = {
+-	.Type = MemExtendedParameterAddressRequirements,
+-	.Pointer = (PVOID) &mmap_req
+-      };
++      /* g++ 11.2 workaround: don't use initializer */
++      MEM_EXTENDED_PARAMETER mmap_ext;
++      mmap_ext.Type = MemExtendedParameterAddressRequirements;
++      mmap_ext.Pointer = (PVOID) &mmap_req;
+ 
+       alloc_type |= attached (prot) ? MEM_RESERVE : 0;
+       status = NtMapViewOfSectionEx (h, NtCurrentProcess (), &base, &offset,
+@@ -1621,15 +1621,15 @@ fhandler_dev_zero::mmap (caddr_t *addr, size_t len, int prot,
+ #ifdef __x86_64__
+       if (wincap.has_extended_mem_api ())
+ 	{
+-	  MEM_ADDRESS_REQUIREMENTS mmap_req = {
++	  static const MEM_ADDRESS_REQUIREMENTS mmap_req = {
+ 	    (PVOID) MMAP_STORAGE_LOW,
+ 	    (PVOID) (MMAP_STORAGE_HIGH - 1),
+ 	    0
+ 	  };
+-	  MEM_EXTENDED_PARAMETER mmap_ext = {
+-	    .Type = MemExtendedParameterAddressRequirements,
+-	    .Pointer = (PVOID) &mmap_req
+-	  };
++	  /* g++ 11.2 workaround: don't use initializer */
++	  MEM_EXTENDED_PARAMETER mmap_ext;
++	  mmap_ext.Type = MemExtendedParameterAddressRequirements;
++	  mmap_ext.Pointer = (PVOID) &mmap_req;
+ 
+ 	  base = VirtualAlloc2 (GetCurrentProcess(), *addr, len, alloc_type,
+ 				protect, *addr ? NULL : &mmap_ext,
