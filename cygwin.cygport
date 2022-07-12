@@ -10,7 +10,7 @@ inherit git
 TOOLCHAIN_TARGET="native"
 inherit toolchain
 
-PKG_NAMES="cygwin cygwin-devel cygwin-doc"
+PKG_NAMES="cygwin cygwin-devel"
 
 PATCH_URI='register.patch static-init.patch overflow.patch'
 
@@ -35,11 +35,7 @@ cygwin_devel_CONTENTS="usr/include/ usr/lib/"
 
 # cygwin doc package
 
-cygwin_doc_CATEGORY="Doc"
-cygwin_doc_SUMMARY="Cygwin-specific documentation, including man pages"
-cygwin_doc_DESCRIPTION="Documentation for Cygwin and newlib, including man
-pages and texinfo files."
-cygwin_doc_CONTENTS="usr/share/man/ usr/share/info/ usr/share/doc/cygwin-doc/ usr/share/doc/newlib/ etc/postinstall/ etc/preremove/"
+
 
 PKG_IGNORE="usr/bin/cygwin1.dbg"
 
@@ -66,10 +62,6 @@ src_compile() {
   CXXFLAGS+=" -Wp,-U_FORTIFY_SOURCE -fno-stack-protector"
   cygconf
   cygmake
-
-  # Make newlib info and manpage documentation
-  cd ${B}/${CHOST}/newlib
-  cygmake info man
 }
 
 src_install() {
@@ -83,22 +75,6 @@ src_install() {
   insinto /usr/lib/debug/usr/bin
   doins ${B}/${ARCH}-pc-cygwin/winsup/cygwin/cygwin1.dbg
   dosym ../lib/debug/usr/bin/cygwin1.dbg /usr/bin/cygwin1.dbg
-
-  # Install newlib info and manpage documentation
-  cd ${B}/${CHOST}/newlib
-  cygmake DESTDIR=${D} install-info install-man
-
-  # cygwin-doc postinstall
-  cd ${I}
-  cd ${B}/${CHOST}/winsup/doc
-  cygmake DESTDIR=${D} install-etc
-
-  cd ${S}
-  docinto /cygwin-doc
-  dodoc winsup/COPYING winsup/CYGWIN_LICENSE README
-
-  docinto /newlib
-  dodoc COPYING.NEWLIB newlib/HOWTO newlib/NEWS newlib/README
 
   cd ${D}
   rm -rf usr/include/iconv.h usr/include/unctrl.h usr/include/rpc \
