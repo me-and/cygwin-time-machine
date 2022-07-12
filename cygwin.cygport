@@ -12,6 +12,8 @@ inherit toolchain
 
 PKG_NAMES="cygwin cygwin-devel cygwin-doc"
 
+PATCH_URI=register.patch
+
 # cygwin base package
 
 cygwin_CATEGORY="Base"

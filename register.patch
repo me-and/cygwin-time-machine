@@ -1,0 +1,185 @@
+commit 8169e39abfd068d1b280ac6ffc5a162e38c2202a
+Author: Corinna Vinschen <corinna@vinschen.de>
+Date:   Thu Aug 26 22:14:11 2021 +0200
+
+    Cygwin: C++17: register keyword is deprecated
+    
+    The register keyword was already deprecated with C++11, but
+    with C++17 it has been entirely removed.
+    
+    Signed-off-by: Corinna Vinschen <corinna@vinschen.de>
+
+diff --git a/winsup/cygserver/sysv_msg.cc b/winsup/cygserver/sysv_msg.cc
+index 21b508682..5051add5a 100644
+--- a/winsup/cygserver/sysv_msg.cc
++++ b/winsup/cygserver/sysv_msg.cc
+@@ -359,7 +359,7 @@ msgctl(struct thread *td, struct msgctl_args *uap)
+ 	struct msqid_ds *user_msqptr = uap->buf;
+ 	int rval, error;
+ 	struct msqid_ds msqbuf;
+-	register struct msqid_ds *msqptr;
++	struct msqid_ds *msqptr;
+ 
+ 	DPRINTF(("call to msgctl(%d, %d, 0x%x)\n", msqid, cmd, user_msqptr));
+ 
+@@ -516,7 +516,7 @@ msgget(struct thread *td, struct msgget_args *uap)
+ 	int msqid, error = 0;
+ 	key_t key = uap->key;
+ 	unsigned msgflg = uap->msgflg;
+-	register struct msqid_ds *msqptr = NULL;
++	struct msqid_ds *msqptr = NULL;
+ 
+ 	DPRINTF(("msgget(0x%x, 0%o)\n", key, msgflg));
+ 
+@@ -629,8 +629,8 @@ msgsnd(struct thread *td, struct msgsnd_args *uap)
+ 	size_t msgsz = uap->msgsz;
+ 	int msgflg = uap->msgflg;
+ 	int segs_needed, error = 0;
+-	register struct msqid_ds *msqptr;
+-	register struct msg *msghdr;
++	struct msqid_ds *msqptr;
++	struct msg *msghdr;
+ 	short next;
+ 
+ 	DPRINTF(("call to msgsnd(%d, 0x%x, %d, %d)\n", msqid, user_msgp, msgsz,
+@@ -943,8 +943,8 @@ msgrcv(struct thread *td, struct msgrcv_args *uap)
+ 	long msgtyp = uap->msgtyp;
+ 	int msgflg = uap->msgflg;
+ 	size_t len;
+-	register struct msqid_ds *msqptr;
+-	register struct msg *msghdr;
++	struct msqid_ds *msqptr;
++	struct msg *msghdr;
+ 	int error = 0;
+ 	short next;
+ 
+diff --git a/winsup/cygwin/cpuid.h b/winsup/cygwin/cpuid.h
+index 478d907ee..18d920955 100644
+--- a/winsup/cygwin/cpuid.h
++++ b/winsup/cygwin/cpuid.h
+@@ -20,9 +20,9 @@ cpuid (uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d, uint32_t ain,
+ 
+ #ifdef __x86_64__
+ static inline bool __attribute ((always_inline))
+-can_set_flag (register uint32_t long flag)
++can_set_flag (uint32_t long flag)
+ {
+-  register uint32_t long r1, r2;
++  uint32_t long r1, r2;
+ 
+   asm volatile ("pushfq\n"
+ 		"popq %0\n"
+@@ -41,9 +41,9 @@ can_set_flag (register uint32_t long flag)
+ }
+ #else
+ static inline bool __attribute ((always_inline))
+-can_set_flag (register uint32_t flag)
++can_set_flag (uint32_t flag)
+ {
+-  register uint32_t r1, r2;
++  uint32_t r1, r2;
+ 
+   asm volatile ("pushfl\n"
+ 		"popl %0\n"
+diff --git a/winsup/cygwin/environ.cc b/winsup/cygwin/environ.cc
+index a14b47953..03f827718 100644
+--- a/winsup/cygwin/environ.cc
++++ b/winsup/cygwin/environ.cc
+@@ -482,8 +482,8 @@ posify_maybe (char **here, const char *value, char *outenv)
+ static char *
+ my_findenv (const char *name, int *offset)
+ {
+-  register int len;
+-  register char **p;
++  int len;
++  char **p;
+   const char *c;
+ 
+   if (cur_environ () == NULL)
+@@ -706,7 +706,7 @@ setenv (const char *name, const char *value, int overwrite)
+ extern "C" int
+ unsetenv (const char *name)
+ {
+-  register char **e;
++  char **e;
+   int offset;
+ 
+   __try
+diff --git a/winsup/cygwin/mount.cc b/winsup/cygwin/mount.cc
+index e0349815d..5eb028980 100644
+--- a/winsup/cygwin/mount.cc
++++ b/winsup/cygwin/mount.cc
+@@ -997,7 +997,7 @@ find_ws (char *in)
+ inline char *
+ conv_fstab_spaces (char *field)
+ {
+-  register char *sp = field;
++  char *sp = field;
+   while ((sp = strstr (sp, "\\040")) != NULL)
+     {
+       *sp++ = ' ';
+diff --git a/winsup/cygwin/strfuncs.cc b/winsup/cygwin/strfuncs.cc
+index 07f2e48bb..f68fcb76f 100644
+--- a/winsup/cygwin/strfuncs.cc
++++ b/winsup/cygwin/strfuncs.cc
+@@ -890,7 +890,7 @@ RtlInt64ToHexUnicodeString (ULONGLONG value, PUNICODE_STRING dest,
+   if (dest->MaximumLength - len < 16 * (int) sizeof (WCHAR))
+     return STATUS_BUFFER_OVERFLOW;
+   wchar_t *end = (PWCHAR) ((PBYTE) dest->Buffer + len);
+-  register PWCHAR p = end + 16;
++  PWCHAR p = end + 16;
+   while (p-- > end)
+     {
+       *p = hex_wchars[value & 0xf];
+diff --git a/winsup/cygwin/string.h b/winsup/cygwin/string.h
+index c6cea364b..384314442 100644
+--- a/winsup/cygwin/string.h
++++ b/winsup/cygwin/string.h
+@@ -32,7 +32,7 @@ extern const char isalpha_array[];
+ static inline int
+ ascii_strcasematch (const char *cs, const char *ct)
+ {
+-  register const unsigned char *us, *ut;
++  const unsigned char *us, *ut;
+ 
+   us = (const unsigned char *) cs;
+   ut = (const unsigned char *) ct;
+@@ -49,7 +49,7 @@ ascii_strcasematch (const char *cs, const char *ct)
+ static inline int
+ ascii_strncasematch (const char *cs, const char *ct, size_t n)
+ {
+-  register const unsigned char *us, *ut;
++  const unsigned char *us, *ut;
+ 
+   if (!n)
+    return 1;
+diff --git a/winsup/cygwin/strsep.cc b/winsup/cygwin/strsep.cc
+index 72edf59fe..31298f620 100644
+--- a/winsup/cygwin/strsep.cc
++++ b/winsup/cygwin/strsep.cc
+@@ -35,9 +35,9 @@ extern "C" char *
+ strsep (char **stringp,
+ 	 const char *delim)
+ {
+-	register char *s;
+-	register const char *spanp;
+-	register int c, sc;
++	char *s;
++	const char *spanp;
++	int c, sc;
+ 	char *tok;
+ 
+ 	if ((s = *stringp) == NULL)
+diff --git a/winsup/utils/path.cc b/winsup/utils/path.cc
+index b99467d9e..df0037c15 100644
+--- a/winsup/utils/path.cc
++++ b/winsup/utils/path.cc
+@@ -283,7 +283,7 @@ find_ws (char *in)
+ inline char *
+ conv_fstab_spaces (char *field)
+ {
+-  register char *sp = field;
++  char *sp = field;
+   while ((sp = strstr (sp, "\\040")) != NULL)
+     {
+       *sp++ = ' ';
