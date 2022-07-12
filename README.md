@@ -1,7 +1,8 @@
 ## Cygwin developer snapshot bisecting
 
 - https://cygwin.com/snapshots/x86_64/cygwin-20210913.tar.xz failed
-- https://cygwin.com/snapshots/x86_64/cygwin-20210507.tar.xz
+- https://cygwin.com/snapshots/x86_64/cygwin-20210507.tar.xz failed
+- https://cygwin.com/snapshots/x86_64/cygwin-20210420.tar.xz
 - https://cygwin.com/snapshots/x86_64/cygwin-20210301.tar.xz passed
 
 ## Cygwin time machine bisecting
