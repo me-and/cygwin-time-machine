@@ -10,7 +10,7 @@ jobs:
         shell: bash --noprofile --norc -e -o pipefail -o igncr {0}
     env:
       PATH: C:\cygwin\bin
-      GIT_REV: '436e47584'
+      GIT_REV: ef95c03522
 
     steps:
       - name: Install Cygwin packages
