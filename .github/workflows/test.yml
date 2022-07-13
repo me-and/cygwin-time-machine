@@ -38,17 +38,16 @@ jobs:
         run: |
           mv cygwin-*.x86_64/inst/usr/bin/cygwin1.dll ./
           cd cygwin-*.x86_64/inst
-          find usr etc -type f -exec bash -c 'for f; do mkdir -p /"$(dirname "$f")" && cp "$f" /"$f"; done' - {} +
+          find . -type f -exec bash -c 'for f; do mkdir -p /"$(dirname "$f")" && cp "$f" /"$f"; done' - {} +
 
       - name: Install cygwin1.dll
         shell: pwsh  # Can't use Cygwin Bash as that would involve using the cygwin1.dll that's being overwritten
         run: Copy-Item -Force .\cygwin1.dll C:\cygwin\bin\cygwin1.dll
 
       - name: Confirm the build is correctly installed
-        shell: bash --noprofile --norc -x -e -o pipefail -o igncr {0}
         run: |
           sha1sum cygwin1.dll "$(which cygwin1.dll)"
-          diff <(cd cygwin-*.x86_64 && find . -type f -exec bash -c 'for f; do sha1sum "$f"; done' - {} +) <(cd cygwin-*.x86_64 && find . -type f -exec bash -c 'cd / && for f; do sha1sum "$f"; done' - {} +)
+          diff <(cd cygwin-*.x86_64/inst && find . -type f -exec bash -c 'for f; do sha1sum "$f"; done' - {} +) <(cd cygwin-*.x86_64/inst && find . -type f -exec bash -c 'cd / && for f; do sha1sum "$f"; done' - {} +)
 
       - name: Checkout Git repository
         uses: actions/checkout@v3
